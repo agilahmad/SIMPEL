@@ -41,9 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('skln')->group(function () {
-        Route::post('/permohonan/skln/store-pokok', [SklnController::class, 'store']);
-        Route::post('/permohonan/skln/submit', [SklnController::class, 'submit']);
-        Route::post('/permohonan/skln/sementara', [SklnController::class, 'sementara']);
-        Route::post('/permohonan/skln/{id}/destroy', [SklnController::class, 'destroy']);
+        Route::get('/dashboard', [SklnController::class, 'index']);
+        Route::post('/store-pokok', [SklnController::class, 'store']);
+        Route::put('/{id}/update', [SklnController::class, 'update']);
+        Route::post('/{id}/submit', [SklnController::class, 'submit']);
+        Route::post('/{id}/sementara', [SklnController::class, 'sementara']);
+        Route::post('/{id}/destroy', [SklnController::class, 'destroy']);
+
+        Route::post('/{id}/store-pemohon', [SklnController::class, 'storePemohon']);
+        Route::post('/{id}/store-kuasa', [SklnController::class, 'storeKuasa']);
+        Route::post('/{id}/store-berkas', [SklnController::class, 'storeBerkas']);
+        Route::post('/{id}/store-berkas-tambahan', [SklnController::class, 'storeBerkasTambahan']); 
     });
 });

@@ -16,8 +16,28 @@ use Illuminate\Support\Facades\Storage;
 
 class SklnController extends Controller
 {
+    public function index(){
+        $user = Auth::user();
+        $permohonan = Skln::with(['pemohon', 'kuasa'])
+        ->where('user_id', Auth::id())
+        ->latest()
+        ->get();
+
+        return view('backend.skln.index', compact('permohonan'));
+
+    }
     public function store(): JsonResponse{
 
+        $existingDraft = Skln::where('user_id', Auth::id())
+        ->where('status', 'draft')
+        ->first();
+
+        if($existingDraft) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mohon anda isi kelengkapan permohonan yang telah anda ajukan',
+            ], 403);
+        }
 
         $validated = request()->validate([
             'pokok_permohonan' => 'nullable|string|max:255',
@@ -300,45 +320,46 @@ class SklnController extends Controller
         }
     }
 
-    public function submit($id): JsonResponse{
-
-        $skln = Skln::with(['skln_pemohon', 'skln_kuasa', 'skln_berkas'])->findOrFail($id);
-
-        if(empty($skln->pokok_permohonan)){
+   public function submit($id): JsonResponse{
+        $skln = Skln::with(['pemohons', 'kuasas', 'berkas'])->findOrFail($id);
+        if (empty($skln->pokok_permohonan)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pokok permohonan wajib diisi',
             ], 422);
         }
-
-        if($skln->pemohon->isEmpty()){
+        if ($skln->pemohons->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Pemohon wajib diisi',
-            ]);
+                'message' => 'Data Pemohon wajib diisi',
+            ], 422); // JANGAN LUPA 422 DISINI
         }
-
         $uploadFile = $skln->berkas->pluck('jenis_berkas')->toArray();
-
         $wajib = ['permohonan_pdf', 'permohonan_doc'];
 
-        foreach($wajib as $jenis){
-            if(!in_array($jenis, $uploadFile)){
+        foreach ($wajib as $jenis) {
+            if (!in_array($jenis, $uploadFile)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Berkas wajib diunggah',
+                    'message' => 'Berkas Permohonan (PDF & Doc) wajib diunggah',
                 ], 422);
             }
         }
+        $tahun = date('Y');        $nomorUrut = Skln::whereYear('created_at', $tahun)
+                     ->where('status', '!=', 'DRAFT')
+                     ->count() + 1;
+
+        $nomorOnline = "{$nomorUrut}/PAN.ONLINE/{$tahun}";
         $skln->update([
-            'status' => 'SUBMITTED',
+            'status'            => 'SUBMITTED',
+            'nomor_registrasi'  => $nomorOnline,
             'tanggal_pengajuan' => now(),
         ]);
 
         return response()->json([
-           'success' => true,
-           'message' => 'Permohonan berhasil disubmit',
-           'redirect' => route('/dashboard')
+           'success'  => true,
+           'message'  => 'Permohonan berhasil dikirim!',
+           'redirect' => route('dashboard')
         ]);
     }
 
