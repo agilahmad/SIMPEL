@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Skln;
 use App\Models\SklnBerkas;
-use App\Models\SklnKuasa;
-use App\Models\SklnPemohon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
@@ -36,6 +34,7 @@ class SklnController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Mohon anda isi kelengkapan permohonan yang telah anda ajukan',
+                'draft_id' => $existingDraft->id,
             ], 403);
         }
 
@@ -45,11 +44,9 @@ class SklnController extends Controller
             'pokok_permohonan.required' => 'Pokok permohonan wajib diisi',
         ]);
         try{
-            $permohonan = Skln::updateOrCreate([
+            $permohonan = Skln::create([
                 'user_id' => Auth::id(),
                 'status' => 'draft',
-
-            ], [
                 'pokok_permohonan' => $validated['pokok_permohonan'],
             ]);
 
