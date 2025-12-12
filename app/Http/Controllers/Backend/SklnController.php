@@ -289,6 +289,13 @@ class SklnController extends Controller
         ]);
     }
 
+    public function showKelengkapan($id){
+
+        $data = Skln::with(['pemohon', 'kuasa', 'berkas'])->findOrFail($id);
+
+        return view('backend.skln.kelengkapan', compact('data'));
+    }
+
     public function update(Request $request, $id): JsonResponse{
 
         $validated = $request->validate([

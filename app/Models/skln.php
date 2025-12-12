@@ -28,14 +28,14 @@ class skln extends Model
     }
     public function skln_pemohon()
     {
-        return $this->hasMany(SklnPemohon::class);
+        return $this->hasMany(SklnPemohon::class, 'skln_id');
     }
     public function skln_kuasa()
     {
-        return $this->hasMany(SklnKuasa::class);
+        return $this->hasMany(SklnKuasa::class, 'skln_id');
     }
     public function skln_berkas()
     {
-        return $this->hasMany(SklnBerkas::class);
+        return $this->hasMany(SklnBerkas::class, 'skln_id');
     }
 }
