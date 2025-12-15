@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class pilkadakuasapemohon extends Model
 {
     protected $table = 'pilkadakuasapemohon';
-
+    protected $guarded = ['id'];
+    protected $casts = [
+        'tanggal_surat' => 'date',
+        'is_advocat' => 'boolean',
+    ];
     protected $fillable = [
         'is_advocat',
         'nik',
@@ -23,14 +27,9 @@ class pilkadakuasapemohon extends Model
         'file_kta',
     ];
 
-    protected $casts = [
-        'tanggal_surat' => 'date',
-        'is_advocat' => 'boolean',
-    ];
-
     public function pilkadapemohon()
     {
-        return $this->belongsTo(PilkadaPemohon::class, 'skln_id');
+        return $this->belongsTo(PilkadaPemohon::class, 'pilkada_pemohon_id');
     }
 
 }

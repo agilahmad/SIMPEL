@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::table('pilkada_data', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pilkada_id')->constrained('pilkada_id')->onDelete('cascade');
-            $table->booleanZ('is_advokat')->default(false);
+            $table->foreignId('pilkada_pemohon_id')->constrained('pilkada_pemohon')->onDelete('cascade');
             $table->string('nik', 16);
             $table->string('nama');
             $table->string('alamat');
@@ -27,17 +26,17 @@ return new class extends Migration
 
         Schema::table('pilkada_kuasa', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pilkada_id')->constrained('pilkada_id')->onDelete('cascade');
-            $table->booleanZ('is_advokat')->default(false);
+            $table->foreignId('pilkada_pemohon_id')->constrained('pilkada_pemohon')->onDelete('cascade');
+            $table->boolean('is_advokat')->default(false);
             $table->string('nik', 16);
             $table->string('nama');
             $table->string('alamat');
             $table->string('email');
             $table->string('telepon')->nullable();
             $table->string('handphone');
-            $table->date('tanggal_surat');
             $table->string('file_ktp');
-            $table->date('tanggal_kuasa')->nullable();
+            $table->date('tanggal_surat');
+            $table->date('tanggal_kuasa');
             $table->string('nomor_anggota')->nullable();
             $table->string('nama_organisasi')->nullable();
             $table->string('file_kta')->nullable();
@@ -46,11 +45,11 @@ return new class extends Migration
 
         Schema::create('pilkada_berkas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pemohon_id')->constrained('pemohons')->onDelete('cascade');
+            $table->foreignId('pilkada_pemohon_id')->constrained('pilkada_pemohon')->onDelete('cascade');
             $table->string('nama_berkas');
             $table->string('file_path');
             $table->string('tipe_file')->nullable();
-            $table->boolean('is_custom')->default(false);
+            $table->string('ukuran_file')->nullable();
             $table->timestamps();
         });
     }
@@ -62,5 +61,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('pilkada_data');
         Schema::dropIfExists('pilkada_kuasa');
+        Schema::dropIfExists('pilkada_berkas');
     }
 };

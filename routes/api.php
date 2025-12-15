@@ -51,6 +51,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/store-pemohon', [SklnController::class, 'storePemohon']);
         Route::post('/{id}/store-kuasa', [SklnController::class, 'storeKuasa']);
         Route::post('/{id}/store-berkas', [SklnController::class, 'storeBerkas']);
-        Route::post('/{id}/store-berkas-tambahan', [SklnController::class, 'storeBerkasTambahan']); 
+        Route::post('/{id}/store-berkas-tambahan', [SklnController::class, 'storeBerkasTambahan']);
+    });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('pilkada-pemohon')->group (function () {
+        
     });
 });

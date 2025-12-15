@@ -13,19 +13,17 @@ return new class extends Migration
     {
         Schema::create('pilkada_pemohon', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pilkada_id')->constrained('pilkada_id')->onDelete('cascade');
-            $table->string('jenis_pemilihan');
-            $table->string('nama_provinsi');
-            $table->string('nama_daerah');
-            $table->string('no_urut');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->enum('jenis_pemilihan', ['gubernur', 'walikota', 'bupati']);
+            $table->foreignId('id_provinsi');
+            $table->foreignId('id_daerah')->nullable();
+            $table->foreignId('no_urut');
             $table->string('pokok_permohonan')->nullable();
             $table->string('status')->default('draft');
-            $table->string('no_regis')->nullable();
-            $table->date('tanggal_pengajuan')->nullable();
             $table->timestamps();
         });
 
-        
+
     }
 
     /**

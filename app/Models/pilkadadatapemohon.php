@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class pilkadadatapemohon extends Model
 {
     protected $table = 'pilkadadatapemohon';
+    protected $guarded = ['id'];
 
     protected $fillable = [
         'nik',
@@ -20,6 +21,6 @@ class pilkadadatapemohon extends Model
 
     public function pilkadapemohon()
     {
-        return $this->belongsTo(PilkadaPemohon::class, 'skln_id');
+        return $this->belongsTo(PilkadaPemohon::class, 'pilkada_pemohon_id');
     }
 }

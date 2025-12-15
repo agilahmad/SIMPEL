@@ -7,17 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class pilkadaberkaspemohon extends Model
 {
     protected $table = 'pilkadaberkaspemohon';
-
+    protected $guarded = ['id'];
     protected $fillable = [
         'pemohon_id',
         'nama_berkas',
         'file_berkas',
         'tipe_berkas',
-        'is_custom',
+        'ukuran_berkas',
     ];
 
     public function pilkadapemohon()
     {
-        return $this->belongsTo(PilkadaPemohon::class, 'skln_id');
+        return $this->belongsTo(PilkadaPemohon::class, 'pilkada_pemohon_id');
     }
 }
