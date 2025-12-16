@@ -40,5 +40,9 @@ class pilkadapemohon extends Model
     {
         return $this->hasMany(PilkadaBerkasPemohon::class);
     }
+    public function pilkadaterkait()
+    {
+        return $this->hasMany(PilkadaTerkait::class, 'pilkada_pemohon_id');
+    }
 
 }

@@ -15,11 +15,6 @@ use Illuminate\Support\Facades\Storage;
 
 class PilkadaPemohonController extends Controller
 {
-    public function index()
-        {
-            return view('backend.pilkada-pemohon.index');
-        }
-
     public function store(Request $request): JsonResponse {
 
         $user = Auth::user();
@@ -38,6 +33,7 @@ class PilkadaPemohonController extends Controller
         $isPilkadaTk2 = in_array($request->jenis_pemilihan, ['walikota', 'bupati']);
 
         $validated = request()->validate([
+            
             'jenis_pemilihan' => 'required|string|in:gubernur, walikota, bupati',
             'nama_provinsi' => 'required|string',
             'nama_daerah' => [Rule::requiredIf($isPilkadaTk2), 'nullable', 'string'],

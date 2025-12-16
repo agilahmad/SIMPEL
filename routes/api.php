@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SklnController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\AdminTicketController;
-use App\Http\Controllers\SklnController;
+use App\Http\Controllers\Backend\PilkadaTerkaitController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -57,6 +58,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('pilkada-pemohon')->group (function () {
-        
+
+    });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('pilkada-terkait')->group (function () {
+        Route::get('/{id}/perkara', [PilkadaTerkaitController::class, 'getPerkara']);
+        Route::post('/store', [PilkadaTerkaitController::class, 'store']);
+        Route::post('/{id}/kuasa', [PilkadaTerkaitController::class, 'storeKuasa']);
+        Route::post('/{id}/berkas', [PilkadaTerkaitController::class, 'storeBerkas']);
+        Route::put('/{id}/update', [PilkadaTerkaitController::class, 'update']);
+        Route::delete('/{id}/destroy', [PilkadaTerkaitController::class, 'destroy']);
     });
 });
