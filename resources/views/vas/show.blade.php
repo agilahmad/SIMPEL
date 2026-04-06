@@ -1,0 +1,397 @@
+@extends('layouts.main')
+
+{{-- @php
+    $routePrefix = $type === 'va' ? 'vas' : 'pentests';
+    $label = $type === 'va' ? 'Vulnerability Assessment' : 'Pentest';
+@endphp --}}
+
+@section('content')
+    @include('partials._file_modal')
+    <main class="nxl-container">
+        <div class="nxl-content">
+
+            <div class="page-header">
+                <div class="page-header-left d-flex align-items-center">
+                    <div class="page-header-title">
+                        <h5 class="m-b-10">Detail {{ $label }}</h5>
+                    </div>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route($routePrefix . '.index') }}">{{ $label }}</a></li>
+                        <li class="breadcrumb-item">Detail</li>
+                    </ul>
+                </div>
+                <div class="page-header-right ms-auto">
+                    <div class="d-flex gap-2">
+                        <a href="{{ route($routePrefix . '.index') }}" class="btn btn-light-brand">
+                            <i class="feather-arrow-left me-2"></i> Kembali
+                        </a>
+                        @can('update', $pentest)
+                            <a href="{{ route($routePrefix . '.edit', $pentest) }}" class="btn btn-primary">
+                                <i class="feather-edit-2 me-2"></i> Edit
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="feather-check-circle me-2"></i>
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="feather-x-circle me-2"></i>
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                <div class="row">
+
+                    <div class="col-lg-4">
+                        <div class="card stretch stretch-full">
+                            <div class="card-header">
+                                <h5 class="card-title">Informasi {{ $label }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="fs-12 text-muted">Aplikasi</label>
+                                    <p class="fw-semibold mb-0">{{ $pentest->application->application_name }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="fs-12 text-muted">Tanggal {{ $label }}</label>
+                                    <p class="fw-semibold mb-0">{{ $pentest->pentest_date->format('d M Y') }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="fs-12 text-muted">Status Perbaikan</label>
+                                    <p class="fw-semibold mb-0">
+                                        @include('partials.pentest-status-badge', ['status' => $pentest->repaired_status])
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="fs-12 text-muted">Tanggal Perbaikan</label>
+                                    <p class="fw-semibold mb-0">
+                                        {{ $pentest->repaired_date ? $pentest->repaired_date->format('d M Y') : '-' }}
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="fs-12 text-muted">Programmer</label>
+                                    <p class="fw-semibold mb-0">{{ $pentest->application->programmer->name ?? '-' }}</p>
+                                </div>
+                                @if ($pentest->link)
+                                    <div class="mb-3">
+                                        <label class="fs-12 text-muted">Link</label>
+                                        <p class="fw-semibold mb-0">
+                                            <a href="{{ $pentest->link }}" target="_blank" class="text-primary text-decoration-none">
+                                                <i class="feather-external-link me-1"></i>Lihat Link
+                                            </a>
+                                        </p>
+                                    </div>
+                                @endif
+                                <div class="mb-3">
+                                    <label class="fs-12 text-muted d-block">File</label>
+                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalFile">
+                                        📄 Lihat File
+                                    </button>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="fs-12 text-muted">Dibuat Oleh</label>
+                                    <p class="fw-semibold mb-0">{{ $pentest->creator->name ?? '-' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-8">
+                        <div class="card stretch stretch-full">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    Daftar Kerentanan
+                                    <span class="badge bg-soft-primary text-primary ms-2">
+                                        {{ $pentest->vulnerability->count() }} temuan
+                                    </span>
+                                </h5>
+                            </div>
+                            <div class="card-body custom-card-action p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Nama Kerentanan</th>
+                                                <th>Severity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($pentest->vulnerability as $vuln)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ $vuln->vulnerability_name }}</td>
+                                                    <td>@include('partials.severity-badge', ['severity' => $vuln->severity])</td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted py-4">
+                                                        <i class="feather-inbox fs-1 d-block mb-2"></i>
+                                                        Belum ada kerentanan
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- ADMIN: Review bukti perbaikan --}}
+                            @if (auth()->user()->isAdmin())
+                                <div class="card-footer p-0">
+                                    <div class="px-4 py-3 border-bottom bg-soft-light">
+                                        <h6 class="fw-semibold mb-0 fs-14">
+                                            <i class="feather-file-text me-2 text-muted"></i>
+                                            Review Bukti Perbaikan
+                                        </h6>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>File</th>
+                                                    <th>Diupload Oleh</th>
+                                                    <th>Status</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse ($pentest->evidences as $evidence)
+                                                    <tr>
+                                                        <td class="fs-12 text-muted">{{ $loop->iteration }}</td>
+                                                        <td>
+                                                            <a href="{{ asset('storage/' . $evidence->file_path) }}"
+                                                                target="_blank"
+                                                                class="d-flex align-items-center gap-2 text-primary fw-semibold text-decoration-none">
+                                                                <i class="feather-image fs-14"></i>
+                                                                <span class="text-truncate" style="max-width:140px;">
+                                                                    {{ $evidence->file_name }}
+                                                                </span>
+                                                            </a>
+                                                        </td>
+                                                        <td class="fs-12 text-muted">{{ $evidence->uploader->name ?? '-' }}</td>
+                                                        <td>
+                                                            @if ($evidence->isPending())
+                                                                <span class="badge bg-soft-warning text-warning">Pending</span>
+                                                            @elseif ($evidence->isApproved())
+                                                                <span class="badge bg-soft-success text-success">Disetujui</span>
+                                                            @elseif ($evidence->isRejected())
+                                                                <span class="badge bg-soft-danger text-danger" title="{{ $evidence->rejection_note }}">Ditolak</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @if ($evidence->isPending())
+                                                                <div class="d-flex gap-2">
+                                                                    <form action="{{ route($routePrefix . '.evidences.approve', [$pentest, $evidence]) }}" method="POST">
+                                                                        @csrf
+                                                                        @method('PATCH')
+                                                                        <button type="submit" class="btn btn-sm btn-success"
+                                                                            onclick="return confirm('Setujui bukti ini?')">
+                                                                            <i class="feather-check me-1"></i>Setujui
+                                                                        </button>
+                                                                    </form>
+                                                                    <button type="button" class="btn btn-sm btn-danger"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#modalReject{{ $evidence->id }}">
+                                                                        <i class="feather-x me-1"></i>Tolak
+                                                                    </button>
+                                                                </div>
+                                                            @elseif ($evidence->isApproved())
+                                                                <span class="fs-12 text-muted">—</span>
+                                                            @elseif ($evidence->isRejected())
+                                                                <span class="fs-12 text-danger" title="{{ $evidence->rejection_note }}">
+                                                                    {{ Str::limit($evidence->rejection_note, 40) }}
+                                                                </span>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="5" class="text-center text-muted py-4">
+                                                            <i class="feather-inbox fs-1 d-block mb-2"></i>
+                                                            Belum ada bukti perbaikan diupload
+                                                        </td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- PROGRAMMER: Lihat status bukti + upload --}}
+                            @can('uploadEvidence', $pentest)
+                                <div class="card-footer p-0">
+                                    <div class="px-4 py-3 border-bottom bg-soft-light d-flex align-items-center justify-content-between">
+                                        <h6 class="fw-semibold mb-0 fs-14">
+                                            <i class="feather-file-text me-2 text-muted"></i>
+                                            Bukti Perbaikan Saya
+                                        </h6>
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadEvidence">
+                                            <i class="feather-upload me-1"></i> Upload Bukti Baru
+                                        </button>
+                                    </div>
+
+                                    @if ($pentest->evidences->count() > 0)
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0 align-middle">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>File</th>
+                                                        <th>Status</th>
+                                                        <th>Keterangan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($pentest->evidences as $evidence)
+                                                        <tr>
+                                                            <td class="fs-12 text-muted">{{ $loop->iteration }}</td>
+                                                            <td>
+                                                                <a href="{{ asset('storage/' . $evidence->file_path) }}"
+                                                                    target="_blank"
+                                                                    class="d-flex align-items-center gap-2 text-primary fw-semibold text-decoration-none">
+                                                                    <i class="feather-image fs-14"></i>
+                                                                    <span class="text-truncate" style="max-width:140px;">
+                                                                        {{ $evidence->file_name }}
+                                                                    </span>
+                                                                </a>
+                                                            </td>
+                                                            <td>
+                                                                @if ($evidence->isPending())
+                                                                    <span class="badge bg-soft-warning text-warning">Menunggu Review</span>
+                                                                @elseif ($evidence->isApproved())
+                                                                    <span class="badge bg-soft-success text-success">Disetujui</span>
+                                                                @elseif ($evidence->isRejected())
+                                                                    <span class="badge bg-soft-danger text-danger">Ditolak</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="fs-12">
+                                                                @if ($evidence->isApproved())
+                                                                    <span class="text-muted">Disetujui oleh {{ $evidence->approver->name ?? '-' }}</span>
+                                                                @elseif ($evidence->isRejected())
+                                                                    <span class="text-danger">
+                                                                        <i class="feather-alert-circle me-1"></i>
+                                                                        {{ $evidence->rejection_note ?? 'Tidak ada keterangan' }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="text-muted">—</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <div class="text-center text-muted py-4">
+                                            <i class="feather-inbox fs-1 d-block mb-2"></i>
+                                            Belum ada bukti perbaikan diupload
+                                        </div>
+                                    @endif
+                                </div>
+                            @endcan
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        @include('layouts.footer')
+    </main>
+
+    {{-- Modal Upload Evidence (Programmer) --}}
+    @can('uploadEvidence', $pentest)
+        <div class="modal fade" id="modalUploadEvidence" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ route($routePrefix . '.evidence.store', $pentest) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">Upload Bukti Perbaikan</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-1">
+                                <label class="form-label fw-semibold">
+                                    File Gambar <span class="text-danger">*</span>
+                                </label>
+                                <input type="file"
+                                    class="form-control @error('files') is-invalid @enderror @error('files.*') is-invalid @enderror"
+                                    name="files[]" multiple required>
+                                <div class="form-text text-muted">Format: JPG, PNG, PDF, DOCS, dll. Maks 5MB per file.</div>
+                                @error('files')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @error('files.*')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light-brand" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="feather-upload me-1"></i> Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endcan
+
+    {{-- Modal Reject Evidence (Admin) --}}
+    @if (auth()->user()->isAdmin())
+        @foreach ($pentest->evidences as $evidence)
+            @if ($evidence->isPending())
+                <div class="modal fade" id="modalReject{{ $evidence->id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form action="{{ route($routePrefix . '.evidences.reject', [$pentest, $evidence]) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Tolak Bukti Perbaikan</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted fs-13 mb-3">
+                                        File: <strong>{{ $evidence->file_name }}</strong>
+                                    </p>
+                                    <div class="mb-1">
+                                        <label class="form-label fw-semibold">
+                                            Alasan Penolakan <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea class="form-control" name="rejection_note" rows="3"
+                                            placeholder="Tuliskan alasan penolakan..." required maxlength="500"></textarea>
+                                        <div class="form-text text-muted">Maksimal 500 karakter</div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light-brand" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="feather-x me-1"></i>Tolak Bukti
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    @endif
+
+@endsection
